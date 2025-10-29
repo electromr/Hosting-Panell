@@ -1,8 +1,8 @@
 {
     "name": "chunkdash",
   "pterodactyl": {
-    "domain": "https://panel.example.com",
-    "key": "Your Pterodactyl API key with all permissions"
+    "domain": "https://panel.purplecloud.qzz.io",
+    "key": "ptla_gwqsfRRhl7icMug1npsOFC3tWHHk9D5F5pVooA7mbHw"
   },
   "timezone": "Europe/London",
   "version": "14.11.0",
