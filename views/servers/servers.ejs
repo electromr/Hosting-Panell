@@ -832,16 +832,23 @@
                 }
                 
                 // Load server details and status
-                fetch(`/api/server/${serverId}/status`)
-                    .then(response => response.json())
-                    .then(data => {
-                        updateServerStatus(data.status);
-                        updateServerDetails(data);
-                    })
-                    .catch(error => {
-                        console.error('Error loading server status:', error);
-                        updateServerStatus('unknown');
-                    });
+                function loadServerStatus() {
+                    fetch(`/api/server/${serverId}/status`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Server status data:', data);
+                            updateServerStatus(data.status);
+                            updateServerDetails(data);
+                        })
+                        .catch(error => {
+                            console.error('Error loading server status:', error);
+                            updateServerStatus('unknown');
+                        });
+                }
+                
+                // Load immediately and every 5 seconds
+                loadServerStatus();
+                setInterval(loadServerStatus, 5000);
                 
                 function updateServerStatus(status) {
                     const indicator = document.getElementById('server-status-indicator');
@@ -851,12 +858,21 @@
                     let statusText = 'Unknown';
                     let statusClass = 'status-offline';
                     
-                    if (status === 'running' || status === 'starting') {
+                    // Normalize status string
+                    const normalizedStatus = (status || '').toLowerCase();
+                    
+                    if (normalizedStatus === 'running' || normalizedStatus === 'started') {
                         statusText = 'Online';
                         statusClass = 'status-online';
-                    } else if (status === 'stopped' || status === 'stopping') {
+                    } else if (normalizedStatus === 'stopped' || normalizedStatus === 'stoppped') {
                         statusText = 'Offline';
                         statusClass = 'status-offline';
+                    } else if (normalizedStatus === 'starting') {
+                        statusText = 'Starting';
+                        statusClass = 'status-warning';
+                    } else if (normalizedStatus === 'stopping') {
+                        statusText = 'Stopping';
+                        statusClass = 'status-warning';
                     }
                     
                     if (indicator && text) {
