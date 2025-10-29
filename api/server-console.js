@@ -76,17 +76,29 @@ module.exports.load = async function (app, db) {
                 if (serverDetailsResponse.ok) {
                     const serverDetails = await serverDetailsResponse.json();
                     
+                    // Handle both response formats (data.attributes vs data)
+                    const serverData = serverDetails.data || serverDetails;
+                    const attributes = serverData.attributes || serverData;
+                    
                     // Get allocations from the response
-                    if (serverDetails.data && serverDetails.data.attributes && serverDetails.data.attributes.relationships && serverDetails.data.attributes.relationships.allocations) {
-                        const allocations = serverDetails.data.attributes.relationships.allocations.data;
+                    if (attributes && attributes.relationships && attributes.relationships.allocations) {
+                        const allocations = attributes.relationships.allocations.data || attributes.relationships.allocations;
                         if (allocations && allocations.length > 0) {
-                            const primaryAllocation = allocations.find(a => a.attributes && a.attributes.primary === true) || allocations[0];
-                            if (primaryAllocation && primaryAllocation.attributes) {
-                                ip = primaryAllocation.attributes.ip_alias || primaryAllocation.attributes.ip || 'N/A';
-                                port = primaryAllocation.attributes.port || 'N/A';
+                            const allocationsArray = Array.isArray(allocations) ? allocations : allocations.data || [];
+                            const primaryAllocation = allocationsArray.find(a => {
+                                const attrs = a.attributes || a;
+                                return attrs.primary === true;
+                            }) || allocationsArray[0];
+                            
+                            if (primaryAllocation) {
+                                const attrs = primaryAllocation.attributes || primaryAllocation;
+                                ip = attrs.ip_alias || attrs.ip || 'N/A';
+                                port = attrs.port || 'N/A';
                             }
                         }
                     }
+                } else {
+                    log.error("Failed to fetch server details from Pterodactyl:", serverDetailsResponse.status);
                 }
             } catch (error) {
                 log.error("Error fetching server details:", error);
