@@ -805,32 +805,29 @@
                     consoleWebSocket = new WebSocket(wsUrl);
                     
                     consoleWebSocket.onopen = function() {
-                        addConsoleLine(`[${new Date().toLocaleTimeString()}] Connected to server console`, 'success');
-                        addConsoleLine(`Type commands and press Enter to send them to your server.`, 'info');
+                        addConsoleLine(`[${new Date().toLocaleTimeString()}] Console connected. Type commands and press Enter.`, 'success');
                     };
                     
                     consoleWebSocket.onmessage = function(event) {
-                        const data = JSON.parse(event.data);
-                        
-                        if (data.type === 'console_output') {
-                            addConsoleLine(data.message, 'info');
-                        } else if (data.type === 'error') {
-                            addConsoleLine(`Error: ${data.message}`, 'error');
-                        } else if (data.type === 'server_status') {
-                            updateServerStatus(data.status);
-                            addConsoleLine(`Server status: ${data.status}`, 'warning');
+                        try {
+                            const data = JSON.parse(event.data);
+                            
+                            if (data.type === 'console_output') {
+                                addConsoleLine(data.message, 'info');
+                            } else if (data.type === 'error') {
+                                addConsoleLine(`Error: ${data.message}`, 'error');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing WebSocket message:', e);
                         }
                     };
                     
                     consoleWebSocket.onclose = function() {
-                        addConsoleLine(`[${new Date().toLocaleTimeString()}] Console disconnected. Reconnecting...`, 'warning');
-                        // Try to reconnect after 3 seconds
-                        setTimeout(connectWebSocket, 3000);
+                        addConsoleLine(`[${new Date().toLocaleTimeString()}] Console disconnected.`, 'warning');
                     };
                     
                     consoleWebSocket.onerror = function(error) {
                         console.error('WebSocket error:', error);
-                        addConsoleLine(`Console connection error. Retrying...`, 'error');
                     };
                 }
                 
