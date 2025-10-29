@@ -237,7 +237,7 @@ module.exports.load = async function (app, db) {
         }
     });
 
-    // WebSocket endpoint for real-time console
+    // WebSocket endpoint for real-time console (simplified - no Pterodactyl WS connection)
     app.ws('/api/server/:serverId/console', async (ws, req) => {
         const serverId = req.params.serverId;
         
@@ -259,67 +259,79 @@ module.exports.load = async function (app, db) {
         const connectionId = `${req.session.userinfo.id}_${serverId}`;
         activeConnections.set(connectionId, ws);
 
-        log.info(`WebSocket connection established for server ${serverId} by user ${req.session.userinfo.id}`);
+        log.info(`Console connection established for server ${serverId} by user ${req.session.userinfo.id}`);
+
+        // Send welcome message
+        ws.send(JSON.stringify({
+            type: 'console_output',
+            message: 'Connected to server console. Type commands and press Enter to send them.'
+        }));
 
         // Handle WebSocket messages from client
-        ws.on('message', (message) => {
+        ws.on('message', async (message) => {
             try {
                 const data = JSON.parse(message);
                 
                 if (data.type === 'ping') {
                     ws.send(JSON.stringify({ type: 'pong' }));
                 } else if (data.type === 'command' && data.command) {
-                    // Send command to Pterodactyl Application API
-                    fetch(`${settings.pterodactyl.domain}/api/application/servers/${serverId}/command`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${settings.pterodactyl.key}`,
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ command: data.command })
-                    }).then(response => {
+                    // Send command to Pterodactyl using Application API
+                    try {
+                        const response = await fetch(`${settings.pterodactyl.domain}/api/application/servers/${serverId}/command`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${settings.pterodactyl.key}`,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ command: data.command })
+                        });
+                        
                         if (response.ok) {
                             ws.send(JSON.stringify({
                                 type: 'console_output',
-                                message: `[${new Date().toLocaleTimeString()}] Command sent: ${data.command}`
+                                message: `> ${data.command}`
                             }));
-                        } else {
                             ws.send(JSON.stringify({
                                 type: 'console_output',
-                                message: `[${new Date().toLocaleTimeString()}] Error: Failed to send command`
+                                message: `[${new Date().toLocaleTimeString()}] Command sent successfully`
+                            }));
+                        } else {
+                            const errorText = await response.text();
+                            log.error(`Failed to send command: ${errorText}`);
+                            ws.send(JSON.stringify({
+                                type: 'console_output',
+                                message: `[${new Date().toLocaleTimeString()}] Error: Failed to send command (Status: ${response.status})`
                             }));
                         }
-                    }).catch(err => {
+                    } catch (err) {
                         log.error("Error sending command:", err);
                         ws.send(JSON.stringify({
                             type: 'console_output',
-                            message: `[${new Date().toLocaleTimeString()}] Error: Failed to send command`
+                            message: `[${new Date().toLocaleTimeString()}] Error: ${err.message}`
                         }));
-                    });
+                    }
                 }
             } catch (error) {
                 log.error("Error handling WebSocket message:", error);
+                ws.send(JSON.stringify({
+                    type: 'console_output',
+                    message: `Error processing message: ${error.message}`
+                }));
             }
         });
 
         // Handle WebSocket close
         ws.on('close', () => {
             activeConnections.delete(connectionId);
-            log.info(`WebSocket connection closed for server ${serverId}`);
+            log.info(`Console connection closed for server ${serverId}`);
         });
 
         // Handle WebSocket errors
         ws.on('error', (error) => {
-            log.error("WebSocket error:", error);
+            log.error("Console WebSocket error:", error);
             activeConnections.delete(connectionId);
         });
-        
-        // Send welcome message
-        ws.send(JSON.stringify({
-            type: 'console_output',
-            message: 'Connected to server console. Type commands and press Enter to send them to your server.'
-        }));
     });
 
     // Helper function to broadcast to all connections for a specific server
