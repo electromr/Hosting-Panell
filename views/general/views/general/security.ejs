@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'Dashboard' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Your existing CSS styles */
+        :root {
+            --primary: #7289da;
+            --primary-dark: #5b6eae;
+            --secondary: #1e1e2e;
+            --secondary-light: #2a2a3e;
+            --accent: #43b581;
+            --danger: #ed4245;
+            --warning: #faa81a;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+            --border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(30, 30, 46, 0.8);
+            --sidebar-width: 260px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--secondary);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background: var(--secondary-light);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--secondary-light);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--primary);
+        }
+
+        .user-details h3 {
+            font-size: 1rem;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn:hover {
+            background: #c03537;
+        }
+
+        .logout-btn i {
+            margin-right: 6px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+        }
+
+        .card-icon {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        /* Security Info Styles */
+        .security-info {
+            display: grid;
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--secondary-light);
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .info-value {
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        .password-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .password-display {
+            font-family: monospace;
+            letter-spacing: 1px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            min-width: 150px;
+        }
+
+        .password-masked {
+            color: var(--text-muted);
+        }
+
+        .password-visible {
+            color: var(--text);
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .action-btn.danger {
+            background: var(--danger);
+        }
+
+        .action-btn.danger:hover {
+            background: #c03537;
+        }
+
+        /* Security Status */
+        .security-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+
+        .status-details h3 {
+            margin-bottom: 5px;
+        }
+
+        .status-details p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Security Tips */
+        .tips-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tips-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+
+        .tips-list li:last-child {
+            border-bottom: none;
+        }
+
+        .tips-list i {
+            color: var(--accent);
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        /* Two-Factor Authentication Section */
+        .two-factor {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--secondary-light);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .two-factor-info h4 {
+            margin-bottom: 5px;
+        }
+
+        .two-factor-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--text-muted);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><%= typeof settings !== 'undefined' && settings.name ? settings.name : 'Dashboard' %></h2>
+        </div>
+
+        <a href="/dashboard" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/servers" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'servers' ? 'active' : '' %>">
+            <i class="fas fa-server"></i>
+            <span>My Servers</span>
+        </a>
+
+        <a href="/servers/new" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'create' ? 'active' : '' %>">
+            <i class="fas fa-plus"></i>
+            <span>Create Server</span>
+        </a>
+
+        <a href="/afk" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'afk' ? 'active' : '' %>">
+            <i class="fas fa-coins"></i>
+            <span>AFK Earnings</span>
+        </a>
+
+        <a href="/profile" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'servers' ? 'active' : '' %>">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+        </a>
+
+        <a href="/earn" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'earn' ? 'active' : '' %>">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Earn Coins</span>
+        </a>
+
+        <a href="/promotion" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'promotion' ? 'active' : '' %>">
+            <i class="fas fa-bullhorn"></i>
+            <span>Promotion</span>
+        </a>
+
+        <a href="/stock" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'stock' ? 'active' : '' %>">
+            <i class="fas fa-chart-line"></i>
+            <span>Stock Market</span>
+        </a>
+
+        <a href="/store" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'store' ? 'active' : '' %>">
+            <i class="fas fa-microchip"></i>
+            <span>Resources</span>
+        </a>
+
+        <a href="/security" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+
+        <a href="/transfer" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'transfer' ? 'active' : '' %>">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>Transfer Coin</span>
+        </a>
+
+        <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+            <a href="/admin" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin' ? 'active' : '' %>">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="Avatar" class="user-avatar">
+                <% } else { %>
+                    <div class="user-avatar" style="background: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <% } %>
+                <div class="user-details">
+                    <h3><%= typeof username !== 'undefined' && username ? username : 'Guest' %></h3>
+                    <p>Balance: <span id="user-balance"><%= typeof coins !== 'undefined' ? coins.toFixed(2) : '0.00' %></span> coins</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+
+        <!-- Security Status Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Security Status</h3>
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+            </div>
+
+            <div class="security-status">
+                <div class="status-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="status-details">
+                    <h3>Good Standing</h3>
+                    <p>Your account security is properly configured</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Credentials Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Panel Credentials</h3>
+                <div class="card-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+            </div>
+
+            <div class="security-info">
+                <div class="info-item">
+                    <span class="info-label">Username</span>
+                    <span class="info-value"><%= typeof pterodactyl !== 'undefined' ? pterodactyl.username : 'N/A' %></span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value"><%= typeof pterodactyl !== 'undefined' ? pterodactyl.email : 'N/A' %></span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Password</span>
+                    <div class="password-container">
+                        <div class="password-display <%= typeof req !== 'undefined' && req.session && req.session.password ? 'password-visible' : 'password-masked' %>" id="password-display">
+                            <% if (typeof req !== 'undefined' && req.session && req.session.password) { %>
+                                <%= req.session.password %>
+                            <% } else { %>
+                                *************
+                            <% } %>
+                        </div>
+                        <% if (typeof req !== 'undefined' && req.session && req.session.password) { %>
+                            <a href="/security" class="action-btn danger">
+                                <i class="fas fa-eye-slash"></i> Hide
+                            </a>
+                        <% } else { %>
+                            <a href="/regen" class="action-btn">
+                                <i class="fas fa-eye"></i> Show
+                            </a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two-Factor Authentication Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Two-Factor Authentication</h3>
+                <div class="card-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+            </div>
+
+            <div class="two-factor">
+                <div class="two-factor-info">
+                    <h4>Enhanced Security</h4>
+                    <p>Add an extra layer of protection to your account</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                Two-factor authentication is currently unavailable but will be implemented in a future update.
+            </p>
+        </div>
+
+        <!-- Security Tips Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Security Tips</h3>
+                <div class="card-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+            </div>
+
+            <ul class="tips-list">
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Never share your password with anyone
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Use a unique password for this service
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Log out from public computers after use
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Regularly check your account activity
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Enable two-factor authentication when available
+                </li>
+            </ul>
+        </div>
+
+        <!-- Account Actions Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Account Actions</h3>
+                <div class="card-icon">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button class="action-btn">
+                    <i class="fas fa-sync-alt"></i> Change Password
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-envelope"></i> Update Email
+                </button>
+                <button class="action-btn danger">
+                    <i class="fas fa-trash-alt"></i> Delete Account
+                </button>
+            </div>
+
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                Note: Some account actions may require verification.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Highlight active page in navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-item');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Two-factor authentication toggle
+            const toggleSwitch = document.querySelector('.toggle-switch input');
+            toggleSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    alert('Two-factor authentication will be available in a future update.');
+                    this.checked = false; // Keep it off for now
+                }
+            });
+
+            // Account action buttons
+            const actionButtons = document.querySelectorAll('.action-btn');
+            actionButtons.forEach(button => {
+                if (!button.getAttribute('href')) {
+                    button.addEventListener('click', function() {
+                        if (this.classList.contains('danger')) {
+                            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                                alert('Account deletion feature is not yet implemented.');
+                            }
+                        } else {
+                            alert('This feature is not yet implemented.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

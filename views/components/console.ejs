@@ -1,0 +1,545 @@
+<!-- Console Component -->
+<div class="console-container" id="console-container" style="display: none;">
+    <div class="console-header">
+        <h3 class="console-title">
+            <i class="fas fa-terminal"></i> Server Console
+        </h3>
+        <div class="console-controls">
+            <button class="console-btn" onclick="toggleConsole()" title="Close Console">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <div class="console-output" id="console-output">
+        <div class="console-line">
+            <span class="console-timestamp">[<%= new Date().toLocaleTimeString() %>]</span>
+            <span class="console-text">Console initialized. Ready for commands.</span>
+        </div>
+    </div>
+    <div class="console-input-container">
+        <div class="console-prompt">
+            <span class="console-prompt-text">server@<%= typeof username !== 'undefined' && username ? username : 'user' %>:~$</span>
+        </div>
+        <input type="text" class="console-input" id="console-input" placeholder="Enter command..." autocomplete="off">
+    </div>
+</div>
+
+<style>
+.console-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 400px;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.console-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    background: linear-gradient(to right, #ffffff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+}
+
+.console-title i {
+    margin-right: 10px;
+    color: var(--accent);
+}
+
+.console-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.console-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.console-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.console-output {
+    flex: 1;
+    padding: 15px 20px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.console-line {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.console-timestamp {
+    color: var(--text-secondary);
+    margin-right: 10px;
+    font-size: 0.8rem;
+    min-width: 80px;
+}
+
+.console-text {
+    color: var(--text-primary);
+    word-wrap: break-word;
+    flex: 1;
+}
+
+.console-input-container {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.console-prompt {
+    margin-right: 10px;
+    font-family: 'Courier New', monospace;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.console-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    padding: 5px 0;
+}
+
+.console-input::placeholder {
+    color: var(--text-secondary);
+}
+
+/* Console toggle button */
+.console-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--accent) 0%, #ffffff 100%);
+    color: black;
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    z-index: 999;
+}
+
+.console-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.6);
+}
+
+/* Console animations */
+.console-container {
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.console-container.show {
+    transform: translateY(0);
+}
+
+/* Scrollbar styling for console output */
+.console-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.console-output::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.console-output::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 4px;
+}
+
+.console-output::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+}
+</style>
+
+<script>
+// Console functionality
+let consoleHistory = [];
+let historyIndex = -1;
+
+function toggleConsole() {
+    const console = document.getElementById('console-container');
+    const toggle = document.getElementById('console-toggle');
+    
+    if (console.style.display === 'none') {
+        console.style.display = 'flex';
+        setTimeout(() => console.classList.add('show'), 10);
+        toggle.innerHTML = '<i class="fas fa-terminal"></i>';
+        document.getElementById('console-input').focus();
+    } else {
+        console.classList.remove('show');
+        setTimeout(() => console.style.display = 'none', 300);
+        toggle.innerHTML = '<i class="fas fa-terminal"></i>';
+    }
+}
+
+function addConsoleLine(text, type = 'info') {
+    const output = document.getElementById('console-output');
+    const line = document.createElement('div');
+    line.className = 'console-line';
+    
+    const timestamp = document.createElement('span');
+    timestamp.className = 'console-timestamp';
+    timestamp.textContent = `[${new Date().toLocaleTimeString()}]`;
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'console-text';
+    textSpan.textContent = text;
+    
+    // Add color coding based on type
+    if (type === 'error') {
+        textSpan.style.color = '#ff4d4f';
+    } else if (type === 'success') {
+        textSpan.style.color = '#00e400';
+    } else if (type === 'warning') {
+        textSpan.style.color = '#ffbb33';
+    } else if (type === 'command') {
+        textSpan.style.color = '#00e4ff';
+        textSpan.style.fontWeight = 'bold';
+    }
+    
+    line.appendChild(timestamp);
+    line.appendChild(textSpan);
+    output.appendChild(line);
+    
+    // Auto-scroll to bottom
+    output.scrollTop = output.scrollHeight;
+}
+
+// Global variables for server management
+let currentServerId = null;
+let serverWebSocket = null;
+let isConnected = false;
+
+function executeCommand(command) {
+    addConsoleLine(`> ${command}`, 'command');
+    
+    // Add to history
+    consoleHistory.unshift(command);
+    if (consoleHistory.length > 50) {
+        consoleHistory.pop();
+    }
+    historyIndex = -1;
+    
+    // Handle special commands
+    if (command.toLowerCase().startsWith('connect ')) {
+        const serverId = command.split(' ')[1];
+        connectToServer(serverId);
+        return;
+    }
+    
+    if (command.toLowerCase() === 'disconnect') {
+        disconnectFromServer();
+        return;
+    }
+    
+    // If connected to a server, handle power commands or send to Minecraft
+    if (isConnected && currentServerId) {
+        const lowerCommand = command.toLowerCase();
+        
+        // Handle power commands
+        if (['start', 'stop', 'restart', 'kill'].includes(lowerCommand)) {
+            sendPowerAction(lowerCommand);
+            return;
+        }
+        
+        // Send other commands to Minecraft server
+        sendServerCommand(command);
+        return;
+    }
+    
+    // Handle local commands
+    setTimeout(() => {
+        switch (command.toLowerCase()) {
+            case 'help':
+                addConsoleLine('Available commands:');
+                addConsoleLine('  help                    - Show this help message');
+                addConsoleLine('  connect <server_id>     - Connect to a server console');
+                addConsoleLine('  disconnect              - Disconnect from current server');
+                addConsoleLine('  servers                 - List your servers');
+                addConsoleLine('  clear                   - Clear console output');
+                addConsoleLine('  version                 - Show system version');
+                addConsoleLine('');
+                addConsoleLine('Server Commands (when connected):');
+                addConsoleLine('  start                   - Start the server');
+                addConsoleLine('  stop                    - Stop the server');
+                addConsoleLine('  restart                 - Restart the server');
+                addConsoleLine('  kill                    - Force kill the server');
+                addConsoleLine('  <minecraft_command>     - Send any Minecraft command');
+                break;
+                
+            case 'servers':
+                listUserServers();
+                break;
+                
+            case 'clear':
+                document.getElementById('console-output').innerHTML = '';
+                addConsoleLine('Console cleared.', 'success');
+                break;
+                
+            case 'version':
+                addConsoleLine('Heliactyl Panel v14.11.0', 'success');
+                addConsoleLine('Node.js v18.17.0');
+                addConsoleLine('Pterodactyl Panel Integration Active');
+                break;
+                
+            default:
+                if (!isConnected) {
+                    addConsoleLine(`Command not found: ${command}`, 'error');
+                    addConsoleLine('Type "help" for available commands or "connect <server_id>" to connect to a server.', 'info');
+                } else {
+                    addConsoleLine(`Command not found: ${command}`, 'error');
+                    addConsoleLine('Type "help" for available commands.', 'info');
+                }
+        }
+    }, 500);
+}
+
+async function connectToServer(serverId) {
+    if (!serverId) {
+        addConsoleLine('Usage: connect <server_id>', 'error');
+        return;
+    }
+    
+    addConsoleLine(`Connecting to server ${serverId}...`, 'info');
+    
+    try {
+        // First verify the server exists and user has access
+        const response = await fetch(`/api/server/${serverId}/status`);
+        if (!response.ok) {
+            throw new Error('Server not found or access denied');
+        }
+        
+        const serverData = await response.json();
+        currentServerId = serverId;
+        
+        // Connect to WebSocket for real-time console
+        connectWebSocket(serverId);
+        
+        addConsoleLine(`Connected to server: ${serverData.name}`, 'success');
+        addConsoleLine(`Status: ${serverData.status}`, 'info');
+        addConsoleLine('You can now send Minecraft commands directly!', 'success');
+        
+    } catch (error) {
+        addConsoleLine(`Failed to connect: ${error.message}`, 'error');
+        addConsoleLine('Make sure the server ID is correct and you have access to it.', 'info');
+    }
+}
+
+function disconnectFromServer() {
+    if (serverWebSocket) {
+        serverWebSocket.close();
+        serverWebSocket = null;
+    }
+    
+    isConnected = false;
+    currentServerId = null;
+    addConsoleLine('Disconnected from server.', 'info');
+}
+
+function connectWebSocket(serverId) {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/api/server/${serverId}/console`;
+    
+    serverWebSocket = new WebSocket(wsUrl);
+    
+    serverWebSocket.onopen = function() {
+        isConnected = true;
+        addConsoleLine('WebSocket connection established.', 'success');
+    };
+    
+    serverWebSocket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'console_output') {
+            addConsoleLine(data.message, 'info');
+        } else if (data.type === 'server_status') {
+            addConsoleLine(`Server status changed: ${data.status}`, 'warning');
+        } else if (data.type === 'error') {
+            addConsoleLine(`Error: ${data.message}`, 'error');
+        }
+    };
+    
+    serverWebSocket.onclose = function() {
+        isConnected = false;
+        addConsoleLine('WebSocket connection closed.', 'warning');
+    };
+    
+    serverWebSocket.onerror = function(error) {
+        addConsoleLine('WebSocket connection error.', 'error');
+        console.error('WebSocket error:', error);
+    };
+}
+
+async function sendServerCommand(command) {
+    if (!isConnected || !currentServerId) {
+        addConsoleLine('Not connected to any server.', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/server/${currentServerId}/command`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ command: command })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to send command');
+        }
+        
+        // Command sent successfully - response will come via WebSocket
+        addConsoleLine(`Command sent: ${command}`, 'command');
+        
+    } catch (error) {
+        addConsoleLine(`Failed to send command: ${error.message}`, 'error');
+    }
+}
+
+async function sendPowerAction(action) {
+    if (!isConnected || !currentServerId) {
+        addConsoleLine('Not connected to any server.', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/server/${currentServerId}/power`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action: action })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to execute power action');
+        }
+        
+        const result = await response.json();
+        addConsoleLine(`${action.charAt(0).toUpperCase() + action.slice(1)} action initiated.`, 'warning');
+        
+    } catch (error) {
+        addConsoleLine(`Failed to execute ${action} action: ${error.message}`, 'error');
+    }
+}
+
+async function listUserServers() {
+    try {
+        const response = await fetch('/api/user/servers');
+        if (!response.ok) {
+            throw new Error('Failed to fetch servers');
+        }
+        
+        const servers = await response.json();
+        
+        if (servers.length === 0) {
+            addConsoleLine('No servers found.', 'info');
+            return;
+        }
+        
+        addConsoleLine('Your servers:', 'info');
+        servers.forEach(server => {
+            const status = server.status === 'running' ? 'Online' : 'Offline';
+            const statusColor = server.status === 'running' ? 'success' : 'error';
+            addConsoleLine(`  ID: ${server.id} | ${server.name} | Status: ${status}`, statusColor);
+        });
+        addConsoleLine('Use "connect <server_id>" to connect to a server.', 'info');
+        
+    } catch (error) {
+        addConsoleLine(`Failed to list servers: ${error.message}`, 'error');
+    }
+}
+
+// Initialize console
+document.addEventListener('DOMContentLoaded', function() {
+    // Add console toggle button
+    const toggle = document.createElement('button');
+    toggle.id = 'console-toggle';
+    toggle.className = 'console-toggle';
+    toggle.innerHTML = '<i class="fas fa-terminal"></i>';
+    toggle.onclick = toggleConsole;
+    document.body.appendChild(toggle);
+    
+    // Handle console input
+    const consoleInput = document.getElementById('console-input');
+    if (consoleInput) {
+        consoleInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim();
+                if (command) {
+                    executeCommand(command);
+                    this.value = '';
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex < consoleHistory.length - 1) {
+                    historyIndex++;
+                    this.value = consoleHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    this.value = consoleHistory[historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    this.value = '';
+                }
+            }
+        });
+    }
+});
+</script>

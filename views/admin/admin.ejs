@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'CLOUD CRASH Dashboard' %></title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0a0a;
+            --secondary: #050505;
+            --accent: #ffffff;
+            --accent-glow: 0 0 12px rgba(255, 255, 255, 0.3), 0 0 24px rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --danger: #ff4d4f;
+            --warning: #ffbb33;
+            --border: #2a2a2a;
+            --card-bg: rgba(0, 0, 0, 0.75);
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Particle Network Background */
+        #particle-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+        }
+
+        /* Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(10, 28, 43, 0.7) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 28, 43, 0.7) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 228, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            box-shadow: var(--accent-glow);
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            max-width: 84rem; /* equivalent to max-w-7xl */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--accent-glow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 228, 255, 0.15), transparent);
+            transform: rotate(45deg);
+            animation: shine 5s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin-right: 12px;
+        }
+
+        /* Input Styles */
+        .form-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px 15px;
+            background: rgba(0, 228, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--accent-glow);
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-label span {
+            color: rgba(0, 228, 255, 0.6);
+        }
+
+        /* Button Styles */
+        .update-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 228, 255, 0.4);
+        }
+
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 228, 255, 0.6);
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 228, 255, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .alert-success {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .alert-error {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .alert-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .alert-content p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Skeleton Loader */
+        .skeleton-loader {
+            display: block;
+        }
+
+        .skeleton-loader .card-content {
+            display: none;
+        }
+
+        #content {
+            display: none;
+        }
+
+        .skeleton-loader #content {
+            display: block;
+        }
+
+        .skeleton-item {
+            background: rgba(0, 228, 255, 0.1);
+            border-radius: 4px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .nav-item span {
+                display: none;
+            }
+
+            .sidebar-header h2 {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .form-input {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Network Background -->
+    <div id="particle-network"></div>
+
+    <!-- Grid Overlay -->
+    <div class="grid-overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><%= typeof settings !== 'undefined' && settings.name ? settings.name : 'VIZORA HOST' %></h2>
+        </div>
+
+        <a href="/dashboard" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/servers" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'servers' ? 'active' : '' %>">
+            <i class="fas fa-server"></i>
+            <span>My Servers</span>
+        </a>
+
+        <a href="/afk" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'afk' ? 'active' : '' %>">
+            <i class="fas fa-coins"></i>
+            <span>AFK Earnings</span>
+        </a>
+
+        <a href="/profile" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'profile' ? 'active' : '' %>">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+        </a>
+
+        <a href="/store" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'store' ? 'active' : '' %>">
+            <i class="fas fa-microchip"></i>
+            <span>Resources</span>
+        </a>
+
+        <a href="/security" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+
+        <a href="/redeem" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'redeem' ? 'active' : '' %>">
+            <i class="fas fa-gift"></i>
+            <span>Redeem Code</span>
+        </a>
+
+        <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+            <a href="/admin" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin' ? 'active' : '' %>">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Skeleton Loader -->
+        <div class="skeleton-loader" id="skeleton">
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <div class="card-title skeleton-item" style="width: 200px; height: 24px;"></div>
+                        <div class="card-icon skeleton-item" style="width: 24px; height: 24px;"></div>
+                    </div>
+                    <div class="skeleton-item" style="width: 300px; height: 16px; margin-bottom: 10px;"></div>
+                    <div class="skeleton-item" style="width: 100%; height: 40px; margin-bottom: 20px;"></div>
+                    <div class="skeleton-item" style="width: 100%; height: 40px; margin-bottom: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="hidden pt-8 px-4 sm:px-6 md:px-8" id="content">
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h2 class="card-title">Settings</h2>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                        Update values in your settings.json file.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <% if (req.query.err && req.query.err !== "none") { %>
+                <div class="alert alert-error">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>An error was encountered</h3>
+                        <p>Error code: <code><%= req.query.err %></code></p>
+                    </div>
+                </div>
+            <% } %>
+            <% if (req.query.err && req.query.err === "none") { %>
+                <div class="alert alert-success">
+                    <div class="alert-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Settings update successful!</h3>
+                        <p>Your settings.json file has been updated. Depending on the setting you updated, you may need to reboot Heliactyl to apply the changes.</p>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Pterodactyl Settings -->
+            <div class="card">
+                <div class="card-content">
+                    <h1 class="card-title">Pterodactyl Settings</h1>
+                    <div class="mt-6">
+                        <label for="url" class="form-label">URL <span>(hostname only)</span></label>
+                        <input type="text" class="form-input" id="url" placeholder="example.com">
+
+                        <label for="key" class="form-label mt-4">API Key</label>
+                        <input type="text" class="form-input" id="key" placeholder="plta_xxx">
+
+                        <button type="button" class="update-btn mt-6" onclick="updatePtero()">Update</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OAuth2 Settings -->
+            <div class="card">
+                <div class="card-content">
+                    <h1 class="card-title">OAuth2 Settings</h1>
+                    <div class="mt-6">
+                        <label for="cID" class="form-label">Client ID</label>
+                        <input type="text" class="form-input" id="cID" placeholder="xxx">
+
+                        <label for="cSecret" class="form-label mt-4">Client Secret</label>
+                        <input type="text" class="form-input" id="cSecret" placeholder="xxx">
+
+                        <label for="callbackUrl" class="form-label mt-4">Callback URL <span>(hostname only)</span></label>
+                        <input type="text" class="form-input" id="callbackUrl" placeholder="example.com">
+
+                        <button type="button" class="update-btn mt-6" onclick="updateOAuth2()">Update</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Reward Code -->
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <h1 class="card-title">Create Reward Code</h1>
+                    </div>
+                    <div id="coupon-error" style="display: none; padding: 10px; margin-bottom: 15px; background: rgba(255, 77, 79, 0.2); border: 1px solid #ff4d4f; border-radius: 6px; color: #ff4d4f;"></div>
+                    <div id="coupon-success" style="display: none; padding: 10px; margin-bottom: 15px; background: rgba(0, 228, 0, 0.2); border: 1px solid #00e400; border-radius: 6px; color: #00e400;"></div>
+                    <div class="mt-6">
+                        <label for="coupon-code" class="form-label">Code (5+ characters)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-input" id="coupon-code" placeholder="e.g., ABC123">
+                            <button type="button" class="update-btn" onclick="generateCode()" style="white-space: nowrap; padding: 0 15px;">
+                                <i class="fas fa-random"></i> Generate
+                            </button>
+                        </div>
+
+                        <label for="coupon-value" class="form-label mt-4">Coin Value (10-1000)</label>
+                        <input type="number" class="form-input" id="coupon-value" placeholder="100" min="10" max="1000">
+
+                        <label for="coupon-uses" class="form-label mt-4">Usage Limit</label>
+                        <input type="number" class="form-input" id="coupon-uses" placeholder="50" min="1" max="100000">
+
+                        <button type="button" class="update-btn mt-6" onclick="createCoupon()">
+                            <i class="fas fa-gift"></i> Create Code
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer (assuming a simple placeholder) -->
+        <footer style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.8rem;">
+            &copy; <%= new Date().getFullYear() %> CLOUD CRASH. All rights reserved.
+        </footer>
+    </div>
+
+    <script>
+        // Particle network animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('particle-network');
+            container.appendChild(canvas);
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 0.5,
+                        y: (Math.random() - 0.5) * 0.5
+                    };
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.color = `rgba(0, 228, 255, ${Math.random() * 0.5 + 0.2})`;
+                }
+
+                update() {
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+
+                    if (this.x < 0 || this.x > width) this.velocity.x *= -1;
+                    if (this.y < 0 || this.y > height) this.velocity.y *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            const particles = [];
+            const particleCount = 100;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(0, 228, 255, ${0.15 * (1 - distance/150)})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+
+            animate();
+
+            // Simulate loading delay
+            setTimeout(() => {
+                document.getElementById('skeleton').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            }, 300);
+
+            // Highlight active page in navigation
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-item');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Update Pterodactyl settings
+            function updatePtero() {
+                const urlInput = document.getElementById('url');
+                const keyInput = document.getElementById('key');
+
+                const url = 'https://' + urlInput.value;
+                const key = keyInput.value;
+
+                fetch(`/settings/update?setting=pterodactyl.domain&value=${encodeURIComponent(url)}`)
+                    .then(response => {
+                        if (response.ok) {
+                            fetch(`/settings/update?setting=pterodactyl.key&value=${encodeURIComponent(key)}`)
+                                .then(response => {
+                                    if (response.ok) {
+                                        window.location.href = '/settings?err=none';
+                                    } else {
+                                        throw new Error('Failed to update Pterodactyl key');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Failed to update Pterodactyl settings');
+                                });
+                        } else {
+                            throw new Error('Failed to update Pterodactyl domain');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to update Pterodactyl settings');
+                    });
+            }
+
+        // Generate random code
+        function generateCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('coupon-code').value = code;
+        }
+
+        // Create coupon code (global scope)
+        function createCoupon() {
+            const code = document.getElementById('coupon-code').value;
+            const value = document.getElementById('coupon-value').value;
+            const uses = document.getElementById('coupon-uses').value;
+            
+            const errorDiv = document.getElementById('coupon-error');
+            const successDiv = document.getElementById('coupon-success');
+            
+            // Hide previous messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!code || code.length < 5) {
+                errorDiv.textContent = 'Code must be at least 5 characters';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (!value || value < 10 || value > 1000) {
+                errorDiv.textContent = 'Coin value must be between 10 and 1000';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (!uses || uses < 1 || uses > 100000) {
+                errorDiv.textContent = 'Usage limit must be between 1 and 100000';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            fetch(`/admin/createcoupon?code=${encodeURIComponent(code)}&value=${encodeURIComponent(value)}&uses=${encodeURIComponent(uses)}`)
+                .then(response => {
+                    if (response.ok) {
+                        successDiv.textContent = 'Coupon code created successfully!';
+                        successDiv.style.display = 'block';
+                        // Clear form
+                        document.getElementById('coupon-code').value = '';
+                        document.getElementById('coupon-value').value = '';
+                        document.getElementById('coupon-uses').value = '';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        response.text().then(text => {
+                            errorDiv.textContent = 'Failed to create coupon code: ' + text;
+                            errorDiv.style.display = 'block';
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorDiv.textContent = 'Failed to create coupon code: ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
+        }
+
+            // Update OAuth2 settings
+            function updateOAuth2() {
+                const idInput = document.getElementById('cID');
+                const secretInput = document.getElementById('cSecret');
+                const urlInput = document.getElementById('callbackUrl');
+
+                const id = idInput.value;
+                const secret = secretInput.value;
+                const url = 'https://' + (urlInput.value).replace('/callback', '');
+
+                fetch(`/settings/update?setting=api.client.oauth2.id&value=${encodeURIComponent(id)}`)
+                    .then(response => {
+                        if (response.ok) {
+                            fetch(`/settings/update?setting=api.client.oauth2.secret&value=${encodeURIComponent(secret)}`)
+                                .then(response => {
+                                    if (response.ok) {
+                                        fetch(`/settings/update?setting=api.client.oauth2.link&value=${encodeURIComponent(url)}`)
+                                            .then(response => {
+                                                if (response.ok) {
+                                                    window.location.href = '/settings?err=none';
+                                                } else {
+                                                    throw new Error('Failed to update OAuth2');
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                alert('Failed to update OAuth2');
+                                            });
+                                    } else {
+                                        throw new Error('Failed to update OAuth2');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Failed to update OAuth2');
+                                });
+                        } else {
+                            throw new Error('Failed to update OAuth2');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to update OAuth2');
+                    });
+            }
+            
+            // Make generateCode available globally
+            window.generateCode = generateCode;
+            window.createCoupon = createCoupon;
+        });
+    </script>
+</body>
+</html>

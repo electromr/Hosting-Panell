@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Redeem Code - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'VIZORA HOST' %></title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<style>
+		:root { --card-bg: rgba(0,0,0,0.75); --border: #2a2a2a; --accent: #ffffff; --text-primary: #ffffff; }
+		.container { max-width: 700px; margin: 40px auto; padding: 20px; color: var(--text-primary); }
+		.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+		.card-title { font-family: 'Orbitron', sans-serif; margin-bottom: 10px; }
+		.form-group { margin: 16px 0; }
+		.form-input { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: #fff; }
+		.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; color: #000; background: #fff; }
+		.alert { margin: 12px 0; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+		.alert-success { color: #00e400; border-color: #00e400; }
+		.alert-error { color: #ff4d4f; border-color: #ff4d4f; }
+	</style>
+</head>
+<body style="background: linear-gradient(135deg, #0a0a0a 0%, #050505 100%); min-height: 100vh;">
+	<div class="container">
+		<div class="card">
+			<h2 class="card-title"><i class="fas fa-gift"></i> Redeem Reward Code</h2>
+			<p>Enter a reward code to receive coins to your account.</p>
+
+			<% if (req.query && req.query.err) { %>
+				<% if (req.query.err === 'none') { %>
+					<div class="alert alert-success"><i class="fas fa-check-circle"></i> Code redeemed successfully.</div>
+				<% } else { %>
+					<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> Error: <%= req.query.err %></div>
+				<% } %>
+			<% } %>
+
+			<div class="form-group">
+				<input type="text" id="code" class="form-input" placeholder="Enter 5-digit or custom code"/>
+			</div>
+			<button class="btn" onclick="redeem()"><i class="fas fa-ticket"></i> Redeem</button>
+		</div>
+	</div>
+
+	<script>
+		function redeem(){
+			const code = encodeURIComponent(document.getElementById('code').value);
+			if(!code){ alert('Enter a code'); return; }
+			document.location.href = `/redeemcoupon?code=${code}`;
+		}
+	</script>
+</body>
+</html>

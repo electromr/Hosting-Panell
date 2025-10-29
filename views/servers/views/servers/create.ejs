@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Server - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'Dashboard' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/@popperjs/core@2.10.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.js" integrity="sha512-eOUPKZXJTfgptSYQqVilRmxUNYm0XVHwcRHD4mdtCLWf/fC9XWe98IT8H1xzBkLL4Mo9GL0xWMSJtgS5te9rQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Your existing CSS styles from dashboard */
+        :root {
+            --primary: #7289da;
+            --primary-dark: #5b6eae;
+            --secondary: #1e1e2e;
+            --secondary-light: #2a2a3e;
+            --accent: #43b581;
+            --danger: #ed4245;
+            --warning: #faa81a;
+            --text: #ffffff;
+            --text-muted: #a0a0c0;
+            --border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(30, 30, 46, 0.8);
+            --sidebar-width: 260px;
+            --header-height: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--secondary);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background: var(--secondary-light);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--secondary-light);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--primary);
+        }
+
+        .user-details h3 {
+            font-size: 1rem;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn:hover {
+            background: #c03537;
+        }
+
+        .logout-btn i {
+            margin-right: 6px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+        }
+
+        .card-icon {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        /* Resource Styles */
+        .resource {
+            margin-bottom: 15px;
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--secondary-light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .progress-ram {
+            background: var(--primary);
+        }
+
+        .progress-cpu {
+            background: var(--warning);
+        }
+
+        .progress-disk {
+            background: var(--accent);
+        }
+
+        .progress-slots {
+            background: var(--danger);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--secondary-light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-primary:disabled {
+            background: #5b6eae80;
+            cursor: not-allowed;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .resource-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .resource-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .resource-icon.ram {
+            color: var(--primary);
+        }
+
+        .resource-icon.cpu {
+            color: var(--warning);
+        }
+
+        .resource-icon.disk {
+            color: var(--accent);
+        }
+
+        .resource-icon.slots {
+            color: var(--danger);
+        }
+
+        .resource-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .resource-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(237, 66, 69, 0.2);
+            border-left: 4px solid var(--danger);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message i {
+            margin-right: 10px;
+            color: var(--danger);
+        }
+
+        .success-message {
+            background: rgba(67, 181, 129, 0.2);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .success-message i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><%= typeof settings !== 'undefined' && settings.name ? settings.name : 'Dashboard' %></h2>
+        </div>
+
+        <a href="/dashboard" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/servers" class="nav-item">
+            <i class="fas fa-server"></i>
+            <span>My Servers</span>
+        </a>
+
+        <a href="/create" class="nav-item active">
+            <i class="fas fa-plus"></i>
+            <span>Create Server</span>
+        </a>
+
+        <a href="/afk" class="nav-item">
+            <i class="fas fa-coins"></i>
+            <span>AFK Earnings</span>
+        </a>
+
+        <a href="/profile" class="nav-item">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+        </a>
+
+        <a href="/earn" class="nav-item">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Earn Coins</span>
+        </a>
+
+        <a href="/promotion" class="nav-item">
+            <i class="fas fa-bullhorn"></i>
+            <span>Promotion</span>
+        </a>
+
+        <a href="/stock" class="nav-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Stock Market</span>
+        </a>
+
+        <a href="/store" class="nav-item">
+            <i class="fas fa-microchip"></i>
+            <span>Resources</span>
+        </a>
+
+        <a href="/security" class="nav-item">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+
+        <a href="/transfer" class="nav-item">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>Transfer Coin</span>
+        </a>
+
+        <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+            <a href="/admin" class="nav-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="Avatar" class="user-avatar">
+                <% } else { %>
+                    <div class="user-avatar" style="background: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <% } %>
+                <div class="user-details">
+                    <h3><%= typeof username !== 'undefined' && username ? username : 'Guest' %></h3>
+                    <p>Balance: <span id="user-balance"><%= typeof coins !== 'undefined' ? coins.toFixed(2) : '0.00' %></span> coins</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+
+        <!-- Page Title -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-plus-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                    Create New Server
+                </h2>
+            </div>
+            <p>Deploy a new server using your available resources.</p>
+        </div>
+
+        <!-- Calculate resource usage at the top of the page -->
+        <%
+            // Calculate total resource usage from existing servers
+            let ram = 0;
+            let disk = 0;
+            let cpu = 0;
+            let servers = 0;
+
+            if (typeof pterodactyl !== 'undefined' && pterodactyl.relationships && pterodactyl.relationships.servers) {
+                servers = pterodactyl.relationships.servers.data.length;
+                for (let i = 0, len = servers; i < len; i++) {
+                    ram = ram + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.memory == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.memory : 0);
+                    disk = disk + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.disk == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.disk : 0);
+                    cpu = cpu + (typeof pterodactyl.relationships.servers.data[i].attributes.limits.cpu == "number" ? pterodactyl.relationships.servers.data[i].attributes.limits.cpu : 0);
+                }
+            }
+
+            // Calculate available resources
+            let ramAvailable = 0;
+            let cpuAvailable = 0;
+            let diskAvailable = 0;
+            let slotsAvailable = 0;
+
+            if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined') {
+                ramAvailable = (packages.ram + extraresources.ram - ram) / 1024;
+                cpuAvailable = (packages.cpu + extraresources.cpu - cpu) / 100;
+                diskAvailable = (packages.disk + extraresources.disk - disk) / 1024;
+                slotsAvailable = (packages.servers + extraresources.servers - servers);
+            }
+        %>
+
+        <!-- Resource Summary -->
+        <div class="resources-grid">
+            <div class="resource-card">
+                <div class="resource-icon ram">
+                    <i class="fas fa-memory"></i>
+                </div>
+                <div class="resource-value">
+                    <%= ramAvailable.toFixed(1) %> GB
+                </div>
+                <div class="resource-label">Available RAM</div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon cpu">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="resource-value">
+                    <%= cpuAvailable.toFixed(1) %> Cores
+                </div>
+                <div class="resource-label">Available CPU</div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon disk">
+                    <i class="fas fa-hdd"></i>
+                </div>
+                <div class="resource-value">
+                    <%= diskAvailable.toFixed(1) %> GB
+                </div>
+                <div class="resource-label">Available Storage</div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon slots">
+                    <i class="fas fa-server"></i>
+                </div>
+                <div class="resource-value">
+                    <%= slotsAvailable %>
+                </div>
+                <div class="resource-label">Available Slots</div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <% if (req.query.err) { %>
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+                <h3>An error occurred during server creation</h3>
+                <p>Error code: <code><%= req.query.err %></code></p>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Server Creation Form -->
+        <% if (ramAvailable > 0 && slotsAvailable > 0) { %>
+        <div class="card">
+            <form id="serverForm" action="/create" method="GET">
+                <div class="form-group">
+                    <label class="form-label" for="name">Server Name</label>
+                    <input type="text" class="form-input" id="name" name="name" placeholder="My Awesome Server" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="location">Server Location</label>
+                    <select class="form-select" id="location" name="location" required>
+                        <% for (let [name, value] of Object.entries(settings.api.client.locations)) { %>
+                        <option value="<%= name %>"><%= value.name %></option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="egg">Server Type</label>
+                    <select class="form-select" id="egg" name="egg" required>
+                        <% for (let [name, value] of Object.entries(settings.api.client.eggs)) { %>
+                        <option value="<%= name %>"><%= value.display %></option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="ram">
+                        RAM (MB) - Available: <%= ramAvailable.toFixed(1) %> GB
+                    </label>
+                    <input type="range" class="form-input" id="ram" name="ram" min="512" max="<%= Math.floor(ramAvailable * 1024) %>" step="512" value="<%= Math.min(2048, Math.floor(ramAvailable * 1024)) %>" oninput="updateRamValue(this.value)">
+                    <div class="resource-header">
+                        <span>Selected:</span>
+                        <span id="ramValue"><%= (Math.min(2048, Math.floor(ramAvailable * 1024)) / 1024).toFixed(1) %> GB</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress progress-ram" style="width: <%= (Math.min(2048, Math.floor(ramAvailable * 1024)) / (Math.floor(ramAvailable * 1024)) * 100) %>%;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="disk">
+                        Storage (MB) - Available: <%= diskAvailable.toFixed(1) %> GB
+                    </label>
+                    <input type="range" class="form-input" id="disk" name="disk" min="1024" max="<%= Math.floor(diskAvailable * 1024) %>" step="1024" value="<%= Math.min(10240, Math.floor(diskAvailable * 1024)) %>" oninput="updateDiskValue(this.value)">
+                    <div class="resource-header">
+                        <span>Selected:</span>
+                        <span id="diskValue"><%= (Math.min(10240, Math.floor(diskAvailable * 1024)) / 1024).toFixed(1) %> GB</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress progress-disk" style="width: <%= (Math.min(10240, Math.floor(diskAvailable * 1024)) / (Math.floor(diskAvailable * 1024)) * 100) %>%;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="cpu">
+                        CPU Cores - Available: <%= cpuAvailable.toFixed(1) %> Cores
+                    </label>
+                    <input type="range" class="form-input" id="cpu" name="cpu" min="10" max="<%= Math.floor(cpuAvailable * 100) %>" step="10" value="<%= Math.min(100, Math.floor(cpuAvailable * 100)) %>" oninput="updateCpuValue(this.value)">
+                    <div class="resource-header">
+                        <span>Selected:</span>
+                        <span id="cpuValue"><%= (Math.min(100, Math.floor(cpuAvailable * 100)) / 100).toFixed(1) %> Cores</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress progress-cpu" style="width: <%= (Math.min(100, Math.floor(cpuAvailable * 100)) / (Math.floor(cpuAvailable * 100)) * 100) %>%;"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="btnText">Create Server</span>
+                    <span id="btnLoader" class="loader" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+        <% } else { %>
+        <div class="card" style="text-align: center;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning); margin-bottom: 20px;"></i>
+            <h2>Insufficient Resources</h2>
+            <p>You don't have enough resources to create a new server.</p>
+            <p>You need at least 0.5 GB RAM and 1 server slot to deploy a server.</p>
+            <div style="margin-top: 20px;">
+                <a href="/store" class="btn btn-primary">Purchase Resources</a>
+                <a href="/servers" class="btn" style="background: var(--secondary-light); margin-left: 10px;">My Servers</a>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+    <script>
+        // Update resource values when sliders change
+        function updateRamValue(value) {
+            document.getElementById('ramValue').textContent = (value / 1024).toFixed(1) + ' GB';
+            const percentage = (value / <%= Math.floor(ramAvailable * 1024) %>) * 100;
+            document.querySelector('#ram ~ .progress-bar .progress').style.width = percentage + '%';
+        }
+
+        function updateDiskValue(value) {
+            document.getElementById('diskValue').textContent = (value / 1024).toFixed(1) + ' GB';
+            const percentage = (value / <%= Math.floor(diskAvailable * 1024) %>) * 100;
+            document.querySelector('#disk ~ .progress-bar .progress').style.width = percentage + '%';
+        }
+
+        function updateCpuValue(value) {
+            document.getElementById('cpuValue').textContent = (value / 100).toFixed(1) + ' Cores';
+            const percentage = (value / <%= Math.floor(cpuAvailable * 100) %>) * 100;
+            document.querySelector('#cpu ~ .progress-bar .progress').style.width = percentage + '%';
+        }
+
+        // Form submission handler
+        document.getElementById('serverForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+
+            submitBtn.disabled = true;
+            btnText.textContent = 'Creating...';
+            btnLoader.style.display = 'inline-block';
+        });
+
+        // Highlight active page in navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-item');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

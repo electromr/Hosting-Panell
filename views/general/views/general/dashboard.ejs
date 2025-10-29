@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'CLOUD CRASH Dashboard' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0a1c2b;
+            --secondary: #1a2e4a;
+            --accent: #00e4ff;
+            --accent-glow: 0 0 15px rgba(0, 228, 255, 0.8), 0 0 30px rgba(0, 228, 255, 0.5);
+            --text-primary: #ffffff;
+            --text-secondary: #b0c4de;
+            --danger: #ff4d4f;
+            --warning: #ffbb33;
+            --border: rgba(0, 228, 255, 0.2);
+            --card-bg: rgba(26, 46, 74, 0.75);
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Particle Network Background */
+        #particle-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+        }
+
+        /* Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(10, 28, 43, 0.7) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 28, 43, 0.7) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 228, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            box-shadow: var(--accent-glow);
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--accent-glow);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--accent);
+        }
+
+        .user-details h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger) 0%, #c03537 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 77, 79, 0.6);
+        }
+
+        .logout-btn i {
+            margin-right: 6px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 228, 255, 0.15), transparent);
+            transform: rotate(45deg);
+            animation: shine 5s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        /* Health Status */
+        .health-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .health-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            box-shadow: var(--accent-glow);
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            color: var(--accent);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: var(--accent-glow);
+        }
+
+        /* Resource Styles */
+        .resource {
+            margin-bottom: 15px;
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .resource-name {
+            color: var(--text-primary);
+        }
+
+        .resource-value {
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(0, 228, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .progress-ram {
+            background: var(--accent);
+        }
+
+        .progress-cpu {
+            background: var(--warning);
+        }
+
+        .progress-disk {
+            background: #00b7eb;
+        }
+
+        .progress-slots {
+            background: var(--danger);
+        }
+
+        /* Coin Price */
+        .coin-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        .coin-change {
+            display: flex;
+            align-items: center;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .coin-change.negative {
+            color: var(--danger);
+        }
+
+        .chart-container {
+            height: 150px;
+            margin-top: 15px;
+        }
+
+        /* Server List */
+        .server-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .server-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .server-item h4 {
+            color: var(--text-primary);
+        }
+
+        .server-actions {
+            display: flex;
+        }
+
+        .server-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .server-btn.restart {
+            background: linear-gradient(135deg, var(--warning) 0%, #d89614 100%);
+        }
+
+        .server-btn.stop {
+            background: linear-gradient(135deg, var(--danger) 0%, #c03537 100%);
+        }
+
+        .server-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--accent-glow);
+        }
+
+        .create-server-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 228, 255, 0.4);
+        }
+
+        .create-server-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 228, 255, 0.6);
+        }
+
+        .create-server-btn i {
+            margin-right: 5px;
+        }
+
+        /* Market Table */
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .market-table th, .market-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .market-table th {
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+
+        .price-up {
+            color: var(--accent);
+        }
+
+        .price-down {
+            color: var(--danger);
+        }
+
+        .market-refresh {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 228, 255, 0.4);
+        }
+
+        .market-refresh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 228, 255, 0.6);
+        }
+
+        .market-refresh i {
+            margin-right: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .nav-item span {
+                display: none;
+            }
+
+            .sidebar-header h2 {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Network Background -->
+    <div id="particle-network"></div>
+
+    <!-- Grid Overlay -->
+    <div class="grid-overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><%= typeof settings !== 'undefined' && settings.name ? settings.name : 'CLOUD CRASH Dashboard' %></h2>
+        </div>
+
+        <a href="/dashboard" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/servers" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'servers' ? 'active' : '' %>">
+            <i class="fas fa-server"></i>
+            <span>My Servers</span>
+        </a>
+
+        <a href="/profile" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'profile' ? 'active' : '' %>">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+        </a>
+
+        <a href="/store" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'store' ? 'active' : '' %>">
+            <i class="fas fa-microchip"></i>
+            <span>Resources</span>
+        </a>
+
+        <a href="/security" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+
+        <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+            <a href="/admin" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin' ? 'active' : '' %>">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="Avatar" class="user-avatar">
+                <% } else { %>
+                    <div class="user-avatar" style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <% } %>
+                <div class="user-details">
+                    <h3><%= typeof username !== 'undefined' && username ? username : 'Guest' %></h3>
+                    <p>Balance: <span id="user-balance"><%= typeof coins !== 'undefined' ? coins.toFixed(2) : '0.00' %></span> coins</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Account Health Card -->
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3 class="card-title">Account Health</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                    </div>
+
+                    <div class="health-status">
+                        <div class="health-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="health-details">
+                            <h3>Excellent</h3>
+                            <p>Your account is in good standing</p>
+                        </div>
+                    </div>
+
+                    <div class="server-status">
+                        <div class="status-indicator"></div>
+                        <span>All systems operational</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources Card -->
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3 class="card-title">Resources</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                    </div>
+
+                    <div class="resource">
+                        <div class="resource-header">
+                            <span class="resource-name">RAM</span>
+                            <span class="resource-value" id="ram-value">
+                                <% 
+                                    let ramUsed = 0;
+                                    let ramTotal = 0;
+                                    if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined' && typeof pterodactyl !== 'undefined') {
+                                        ramTotal = packages.ram + extraresources.ram;
+                                        if (pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data) {
+                                            for (let i = 0; i < pterodactyl.relationships.servers.data.length; i++) {
+                                                ramUsed += pterodactyl.relationships.servers.data[i].attributes.limits.memory || 0;
+                                            }
+                                        }
+                                    }
+                                %>
+                                <%= (ramUsed / 1024).toFixed(1) %> GiB / <%= (ramTotal / 1024).toFixed(1) %> GiB
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress progress-ram" id="ram-progress" style="width: <%= ramTotal > 0 ? (ramUsed / ramTotal * 100).toFixed(1) : 0 %>%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="resource">
+                        <div class="resource-header">
+                            <span class="resource-name">CPU</span>
+                            <span class="resource-value" id="cpu-value">
+                                <%
+                                    let cpuUsed = 0;
+                                    let cpuTotal = 0;
+                                    if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined' && typeof pterodactyl !== 'undefined') {
+                                        cpuTotal = packages.cpu + extraresources.cpu;
+                                        if (pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data) {
+                                            for (let i = 0; i < pterodactyl.relationships.servers.data.length; i++) {
+                                                cpuUsed += pterodactyl.relationships.servers.data[i].attributes.limits.cpu || 0;
+                                            }
+                                        }
+                                    }
+                                %>
+                                <%= (cpuUsed / 100).toFixed(1) %> / <%= (cpuTotal / 100).toFixed(1) %> Cores
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress progress-cpu" id="cpu-progress" style="width: <%= cpuTotal > 0 ? (cpuUsed / cpuTotal * 100).toFixed(1) : 0 %>%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="resource">
+                        <div class="resource-header">
+                            <span class="resource-name">Disk</span>
+                            <span class="resource-value" id="disk-value">
+                                <%
+                                    let diskUsed = 0;
+                                    let diskTotal = 0;
+                                    if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined' && typeof pterodactyl !== 'undefined') {
+                                        diskTotal = packages.disk + extraresources.disk;
+                                        if (pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data) {
+                                            for (let i = 0; i < pterodactyl.relationships.servers.data.length; i++) {
+                                                diskUsed += pterodactyl.relationships.servers.data[i].attributes.limits.disk || 0;
+                                            }
+                                        }
+                                    }
+                                %>
+                                <%= (diskUsed / 1024).toFixed(1) %> GiB / <%= (diskTotal / 1024).toFixed(1) %> GiB
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress progress-disk" id="disk-progress" style="width: <%= diskTotal > 0 ? (diskUsed / diskTotal * 100).toFixed(1) : 0 %>%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="resource">
+                        <div class="resource-header">
+                            <span class="resource-name">Server Slots</span>
+                            <span class="resource-value" id="slots-value">
+                                <%
+                                    let slotsUsed = 0;
+                                    let slotsTotal = 0;
+                                    if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined' && typeof pterodactyl !== 'undefined') {
+                                        slotsTotal = packages.servers + extraresources.servers;
+                                        if (pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data) {
+                                            slotsUsed = pterodactyl.relationships.servers.data.length;
+                                        }
+                                    }
+                                %>
+                                <%= slotsUsed %> / <%= slotsTotal %>
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress progress-slots" id="slots-progress" style="width: <%= slotsTotal > 0 ? (slotsUsed / slotsTotal * 100).toFixed(1) : 0 %>%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Coin Card -->
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <h3 class="card-title">Server Coin</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+
+                    <div class="coin-price" id="coin-price">$<%= typeof coinValue !== 'undefined' ? coinValue.toFixed(2) : '4.32' %></div>
+                    <div class="coin-change" id="coin-change">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+2.4% (24h)</span>
+                    </div>
+
+                    <div class="chart-container">
+```chartjs
+{
+    "type": "line",
+    "data": {
+        "labels": ["0h", "1h", "2h", "3h", "4h", "5h", "6h", "7h", "8h", "9h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"],
+        "datasets": [{
+            "label": "Server Coin",
+            "data": [3.5, 3.7, 3.6, 3.8, 4.0, 4.2, 4.1, 4.3, 4.2, 4.4, 4.3, 4.5, 4.4, 4.6, 4.5, 4.7, 4.6, 4.8, 4.7, 4.9, 4.8, 5.0, 4.9, 4.8],
+            "borderColor": "#00e4ff",
+            "backgroundColor": "rgba(0, 228, 255, 0.1)",
+            "tension": 0.4,
+            "fill": true,
+            "pointRadius": 0
+        }]
+    },
+    "options": {
+        "responsive": true,
+        "maintainAspectRatio": false,
+        "plugins": {
+            "legend": {
+                "display": false
+            }
+        },
+        "scales": {
+            "x": {
+                "grid": {
+                    "display": false
+                },
+                "ticks": {
+                    "color": "#b0c4de"
+                }
+            },
+            "y": {
+                "display": false,
+                "grid": {
+                    "display": false
+                }
+            }
+        }
+    }
+}
+```
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Server Status Card -->
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Active Servers</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                </div>
+
+                <% if (typeof pterodactyl !== 'undefined' && pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data && pterodactyl.relationships.servers.data.length > 0) { %>
+                    <div class="server-list">
+                        <% pterodactyl.relationships.servers.data.forEach(server => { %>
+                            <div class="server-item">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h4><%= server.attributes.name %></h4>
+                                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Status: <span style="color: var(--accent);">Running</span></p>
+                                    </div>
+                                    <div class="server-actions">
+                                        <button class="server-btn" onclick="location.href='/edit?id=<%= server.attributes.id %>'">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button class="server-btn restart">
+                                            <i class="fas fa-redo"></i>
+                                        </button>
+                                        <button class="server-btn stop">
+                                            <i class="fas fa-stop"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div style="text-align: center; padding: 30px 0;">
+                        <i class="fas fa-server" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                        <h3>No active servers</h3>
+                        <p style="color: var(--text-secondary); margin: 10px 0 20px;">You don't have any servers running</p>
+                        <button class="create-server-btn" onclick="location.href='/create'">
+                            <i class="fas fa-plus"></i>
+                            Create a Server
+                        </button>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Coin Market Section -->
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Coin Market</h3>
+                    <button class="market-refresh" id="refresh-market">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <table class="market-table">
+                    <thead>
+                        <tr>
+                            <th>Coin</th>
+                            <th>Price</th>
+                            <th>24h Change</th>
+                            <th>Market Cap</th>
+                        </tr>
+                    </thead>
+                    <tbody id="market-data">
+                        <tr>
+                            <td>Server Coin (SC)</td>
+                            <td id="market-price">$<%= typeof coinValue !== 'undefined' ? coinValue.toFixed(2) : '4.32' %></td>
+                            <td class="price-up" id="market-change">+2.4%</td>
+                            <td id="market-cap">$542.6M</td>
+                        </tr>
+                        <tr>
+                            <td>Bitcoin (BTC)</td>
+                            <td>$61,423.78</td>
+                            <td class="price-up">+1.2%</td>
+                            <td>$1.21T</td>
+                        </tr>
+                        <tr>
+                            <td>Ethereum (ETH)</td>
+                            <td>$3,412.56</td>
+                            <td class="price-down">-0.8%</td>
+                            <td>$409.3B</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particle network animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('particle-network');
+            container.appendChild(canvas);
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 0.5,
+                        y: (Math.random() - 0.5) * 0.5
+                    };
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.color = `rgba(0, 228, 255, ${Math.random() * 0.5 + 0.2})`;
+                }
+
+                update() {
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+
+                    if (this.x < 0 || this.x > width) this.velocity.x *= -1;
+                    if (this.y < 0 || this.y > height) this.velocity.y *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            const particles = [];
+            const particleCount = 100;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(0, 228, 255, ${0.15 * (1 - distance/150)})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+
+            animate();
+
+            // Real-time coin price simulation
+            let currentCoinValue = <%= typeof coinValue !== 'undefined' ? coinValue : 4.32 %>;
+
+            function updateCoinPrice() {
+                const change = (Math.random() - 0.5) * 0.8;
+                currentCoinValue = Math.max(0.1, currentCoinValue + change);
+                const percentChange = change / (currentCoinValue - change) * 100;
+
+                document.getElementById('coin-price').textContent = '$' + currentCoinValue.toFixed(2);
+                document.getElementById('market-price').textContent = '$' + currentCoinValue.toFixed(2);
+
+                const changeElement = document.getElementById('coin-change');
+                const marketChangeElement = document.getElementById('market-change');
+
+                if (percentChange >= 0) {
+                    changeElement.innerHTML = '<i class="fas fa-arrow-up"></i><span>+' + percentChange.toFixed(2) + '% (24h)</span>';
+                    changeElement.classList.remove('negative');
+                    marketChangeElement.textContent = '+' + percentChange.toFixed(2) + '%';
+                    marketChangeElement.className = 'price-up';
+                } else {
+                    changeElement.innerHTML = '<i class="fas fa-arrow-down"></i><span>' + percentChange.toFixed(2) + '% (24h)</span>';
+                    changeElement.classList.add('negative');
+                    marketChangeElement.textContent = percentChange.toFixed(2) + '%';
+                    marketChangeElement.className = 'price-down';
+                }
+            }
+
+            // Update coin price every 10 seconds
+            setInterval(updateCoinPrice, 10000);
+
+            // Refresh market data
+            document.getElementById('refresh-market').addEventListener('click', function() {
+                updateCoinPrice();
+
+                // Show refreshing animation
+                this.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Refreshing';
+
+                // Reset after 1 second
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                }, 1000);
+            });
+
+            // Highlight active page in navigation
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-item');
+
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

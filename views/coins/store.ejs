@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store - <%= typeof settings !== 'undefined' && settings.name ? settings.name : 'VIZORA HOST' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0a0a;
+            --secondary: #050505;
+            --accent: #ffffff;
+            --accent-glow: 0 0 12px rgba(255, 255, 255, 0.3), 0 0 24px rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --danger: #ff4d4f;
+            --warning: #ffbb33;
+            --border: #2a2a2a;
+            --card-bg: rgba(0, 0, 0, 0.75);
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Particle Network Background */
+        #particle-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+        }
+
+        /* Grid Overlay */
+        .grid-overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(10, 28, 43, 0.7) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 28, 43, 0.7) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .sidebar-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 228, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            box-shadow: var(--accent-glow);
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--accent-glow);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--accent);
+        }
+
+        .user-details h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-details p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger) 0%, #c03537 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 77, 79, 0.6);
+        }
+
+        .logout-btn i {
+            margin-right: 6px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--accent-glow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 228, 255, 0.15), transparent);
+            transform: rotate(45deg);
+            animation: shine 5s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        /* Store Grid */
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .resource-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--accent-glow);
+        }
+
+        .resource-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            box-shadow: var(--accent-glow);
+        }
+
+        .resource-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            background: linear-gradient(to right, #ffffff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .resource-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .resource-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(0, 228, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--accent-glow);
+        }
+
+        .purchase-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent) 0%, #0083b0 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 228, 255, 0.4);
+        }
+
+        .purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 228, 255, 0.6);
+        }
+
+        .purchase-btn i {
+            margin-right: 8px;
+        }
+
+        .purchase-btn:disabled {
+            background: rgba(0, 228, 255, 0.3);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 228, 255, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .alert-success {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .alert-warning {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .alert-content h3 {
+            margin-bottom: 5px;
+            font-size: 1rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .alert-content p {
+            font-size: 0.9rem;
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        /* Balance Info */
+        .balance-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--accent-glow);
+        }
+
+        .balance-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .balance-amount {
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+
+        /* Resource Stats */
+        .resource-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(0, 228, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .nav-item span {
+                display: none;
+            }
+
+            .sidebar-header h2 {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .store-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .resource-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Network Background -->
+    <div id="particle-network"></div>
+
+    <!-- Grid Overlay -->
+    <div class="grid-overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><%= typeof settings !== 'undefined' && settings.name ? settings.name : 'CLOUD CRASH Dashboard' %></h2>
+        </div>
+
+        <a href="/dashboard" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/servers" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'servers' ? 'active' : '' %>">
+            <i class="fas fa-server"></i>
+            <span>My Servers</span>
+        </a>
+
+        <a href="/profile" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'profile' ? 'active' : '' %>">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+        </a>
+
+        <a href="/store" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'store' ? 'active' : '' %>">
+            <i class="fas fa-microchip"></i>
+            <span>Resources</span>
+        </a>
+
+        <a href="/security" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+
+        <a href="/redeem" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'redeem' ? 'active' : '' %>">
+            <i class="fas fa-gift"></i>
+            <span>Redeem Code</span>
+        </a>
+
+        <% if (typeof user !== 'undefined' && user.role === 'admin') { %>
+            <a href="/admin" class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'admin' ? 'active' : '' %>">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="user-info">
+                <% if (typeof user !== 'undefined' && user.avatar) { %>
+                    <img src="<%= user.avatar %>" alt="Avatar" class="user-avatar">
+                <% } else { %>
+                    <div class="user-avatar" style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                <% } %>
+                <div class="user-details">
+                    <h3><%= typeof username !== 'undefined' && username ? username : 'Guest' %></h3>
+                    <p>Balance: <span id="user-balance"><%= typeof coins !== 'undefined' ? coins.toFixed(2) : '0.00' %></span> coins</p>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+
+        <!-- Store Header -->
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Resource Store</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+
+                <div class="balance-info">
+                    <span class="balance-label">Your Coin Balance:</span>
+                    <span class="balance-amount"><%= typeof coins !== 'undefined' ? coins.toFixed(2) : '0.00' %> coins</span>
+                </div>
+
+                <p style="color: var(--text-secondary); margin-bottom: 0;">
+                    Use your coins to purchase additional resources for your servers. Purchases are applied directly to the selected server.
+                </p>
+            </div>
+        </div>
+
+        <!-- Select Server to Apply Resources -->
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Select Target Server</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <select id="server" class="form-select">
+                        <% if (typeof servers !== 'undefined' && servers && servers.length > 0) { %>
+                            <% servers.forEach(function(srv){ %>
+                                <option value="<%= srv.attributes.id %>"><%= srv.attributes.name %> (ID: <%= srv.attributes.id %>)</option>
+                            <% }) %>
+                        <% } else if (typeof pterodactyl !== 'undefined' && pterodactyl && pterodactyl.relationships && pterodactyl.relationships.servers && pterodactyl.relationships.servers.data && pterodactyl.relationships.servers.data.length) { %>
+                            <% pterodactyl.relationships.servers.data.forEach(function(srv){ %>
+                                <option value="<%= srv.attributes.id %>"><%= srv.attributes.name %> (ID: <%= srv.attributes.id %>)</option>
+                            <% }) %>
+                        <% } else { %>
+                            <option value="">No servers found - Please create a server first</option>
+                        <% } %>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <% if (typeof req !== 'undefined' && req.query && req.query.err) { %>
+            <% if (req.query.err === 'none') { %>
+                <div class="alert alert-success">
+                    <div class="alert-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Resources Purchased Successfully</h3>
+                        <p>You can now edit one of your servers and add the extra resources.</p>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="alert alert-warning">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3>Purchase Error</h3>
+                        <p>Error code: <code><%= req.query.err %></code></p>
+                    </div>
+                </div>
+            <% } %>
+        <% } %>
+
+        <!-- Resource Cards -->
+        <div class="store-grid">
+            <!-- RAM Card -->
+            <div class="resource-card">
+                <div class="resource-icon">
+                    <i class="fas fa-memory"></i>
+                </div>
+                <div class="resource-name">Additional RAM</div>
+                <div class="resource-description">
+                    Increase your server's memory allocation for better performance with memory-intensive applications.
+                </div>
+                <div class="resource-price">
+                    <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.ram ? 
+                        settings.api.client.coins.store.ram.per/1024 + ' GiB per ' + settings.api.client.coins.store.ram.cost + ' coin' + (settings.api.client.coins.store.ram.cost == 1 ? '' : 's') 
+                        : 'N/A' %>
+                </div>
+
+                <div class="form-group">
+                    <select id="ram" class="form-select">
+                        <% for (let i = 1; i <= 10; i++) { %>
+                            <option value="<%= i %>">
+                                <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.ram ? 
+                                    (settings.api.client.coins.store.ram.per/1024 * i) + ' GiB Memory - ' + (settings.api.client.coins.store.ram.cost * i) + ' coin' + (settings.api.client.coins.store.ram.cost * i == 1 ? '' : 's') 
+                                    : 'N/A' %>
+                            </option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <button onclick="buyRAM()" class="purchase-btn">
+                    <i class="fas fa-cart-plus"></i> Purchase RAM
+                </button>
+            </div>
+
+            <!-- CPU Card -->
+            <div class="resource-card">
+                <div class="resource-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <div class="resource-name">Additional CPU</div>
+                <div class="resource-description">
+                    Add more processing power to your server for faster computation and better multitasking capabilities.
+                </div>
+                <div class="resource-price">
+                    <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.cpu ? 
+                        settings.api.client.coins.store.cpu.per/100 + ' CPU Cores per ' + settings.api.client.coins.store.cpu.cost + ' coin' + (settings.api.client.coins.store.cpu.cost == 1 ? '' : 's') 
+                        : 'N/A' %>
+                </div>
+
+                <div class="form-group">
+                    <select id="cpu" class="form-select">
+                        <% for (let i = 1; i <= 10; i++) { %>
+                            <option value="<%= i %>">
+                                <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.cpu ? 
+                                    (settings.api.client.coins.store.cpu.per/100 * i) + ' CPU Cores - ' + (settings.api.client.coins.store.cpu.cost * i) + ' coin' + (settings.api.client.coins.store.cpu.cost * i == 1 ? '' : 's') 
+                                    : 'N/A' %>
+                            </option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <button onclick="buyCPU()" class="purchase-btn">
+                    <i class="fas fa-cart-plus"></i> Purchase CPU
+                </button>
+            </div>
+
+            <!-- Disk Card -->
+            <div class="resource-card">
+                <div class="resource-icon">
+                    <i class="fas fa-hdd"></i>
+                </div>
+                <div class="resource-name">Additional Storage</div>
+                <div class="resource-description">
+                    Expand your server's storage capacity for more files, databases, and applications.
+                </div>
+                <div class="resource-price">
+                    <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.disk ? 
+                        settings.api.client.coins.store.disk.per/1024 + ' GiB per ' + settings.api.client.coins.store.disk.cost + ' coin' + (settings.api.client.coins.store.disk.cost == 1 ? '' : 's') 
+                        : 'N/A' %>
+                </div>
+
+                <div class="form-group">
+                    <select id="disk" class="form-select">
+                        <% for (let i = 1; i <= 10; i++) { %>
+                            <option value="<%= i %>">
+                                <%= typeof settings !== 'undefined' && settings.api && settings.api.client && settings.api.client.coins && settings.api.client.coins.store && settings.api.client.coins.store.disk ? 
+                                    (settings.api.client.coins.store.disk.per/1024 * i) + ' GiB Storage - ' + (settings.api.client.coins.store.disk.cost * i) + ' coin' + (settings.api.client.coins.store.disk.cost * i == 1 ? '' : 's') 
+                                    : 'N/A' %>
+                            </option>
+                        <% } %>
+                    </select>
+                </div>
+
+                <button onclick="buyDisk()" class="purchase-btn">
+                    <i class="fas fa-cart-plus"></i> Purchase Storage
+                </button>
+            </div>
+
+            <!-- Server Slots Card removed due to one-server policy -->
+        </div>
+
+        <!-- Current Resources Stats -->
+        <div class="card">
+            <div class="card-content">
+                <div class="card-header">
+                    <h3 class="card-title">Your Current Resources</h3>
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                </div>
+
+                <div class="resource-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <% 
+                                let ramTotal = 0;
+                                if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined') {
+                                    ramTotal = packages.ram + extraresources.ram;
+                                }
+                            %>
+                            <%= (ramTotal / 1024).toFixed(1) %> GB
+                        </div>
+                        <div class="stat-label">Total RAM</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <% 
+                                let cpuTotal = 0;
+                                if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined') {
+                                    cpuTotal = packages.cpu + extraresources.cpu;
+                                }
+                            %>
+                            <%= (cpuTotal / 100).toFixed(1) %>
+                        </div>
+                        <div class="stat-label">CPU Cores</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <% 
+                                let diskTotal = 0;
+                                if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined') {
+                                    diskTotal = packages.disk + extraresources.disk;
+                                }
+                            %>
+                            <%= (diskTotal / 1024).toFixed(1) %> GB
+                        </div>
+                        <div class="stat-label">Storage</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <% 
+                                let serversTotal = 0;
+                                if (typeof packages !== 'undefined' && typeof extraresources !== 'undefined') {
+                                    serversTotal = packages.servers + extraresources.servers;
+                                }
+                            %>
+                            <%= serversTotal %>
+                        </div>
+                        <div class="stat-label">Server Slots</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particle network animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('particle-network');
+            container.appendChild(canvas);
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 0.5,
+                        y: (Math.random() - 0.5) * 0.5
+                    };
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.color = `rgba(0, 228, 255, ${Math.random() * 0.5 + 0.2})`;
+                }
+
+                update() {
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+
+                    if (this.x < 0 || this.x > width) this.velocity.x *= -1;
+                    if (this.y < 0 || this.y > height) this.velocity.y *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            const particles = [];
+            const particleCount = 100;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, width, height);
+
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(0, 228, 255, ${0.15 * (1 - distance/150)})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            });
+
+            animate();
+        });
+
+        // Purchase functions (must be global scope)
+        function buyRAM() {
+                let amount = encodeURIComponent(document.getElementById("ram").value);
+                let sid = encodeURIComponent(document.getElementById("server").value);
+                if (!sid) { alert('Select a server first.'); return; }
+                if (confirm('Are you sure you want to purchase this RAM?')) {
+                    document.location.href = `/buy?type=ram&amount=${amount}&server=${sid}`;
+                }
+            }
+
+        function buyDisk() {
+                let amount = encodeURIComponent(document.getElementById("disk").value);
+                let sid = encodeURIComponent(document.getElementById("server").value);
+                if (!sid) { alert('Select a server first.'); return; }
+                if (confirm('Are you sure you want to purchase this storage?')) {
+                    document.location.href = `/buy?type=disk&amount=${amount}&server=${sid}`;
+                }
+            }
+
+        function buyCPU() {
+                let amount = encodeURIComponent(document.getElementById("cpu").value);
+                let sid = encodeURIComponent(document.getElementById("server").value);
+                if (!sid) { alert('Select a server first.'); return; }
+                if (confirm('Are you sure you want to purchase this CPU?')) {
+                    document.location.href = `/buy?type=cpu&amount=${amount}&server=${sid}`;
+                }
+            }
+
+        // Highlight active page in navigation
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-item');
+
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
